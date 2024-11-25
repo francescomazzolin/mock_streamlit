@@ -1,0 +1,11 @@
+streamlit
+python-dotenv
+openai
+pandas
+python-docx
+re
+time
+pickle5  # For backward compatibility of pickle
+PyPDF2
+langchain
+faiss-cpu  # Replace with faiss-gpu if using GPU
