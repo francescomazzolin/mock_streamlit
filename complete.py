@@ -177,7 +177,7 @@ def document_generator():
         with st.spinner('Generating document...'):
 
             if pdf_docs:
-                st.write(f'{type(pdf_docs}')
+                st.write(f'{type(pdf_docs)}')
                 
                 for uploaded_file in pdf_docs:
                     st.write(f"File Name: {uploaded_file.name}")
