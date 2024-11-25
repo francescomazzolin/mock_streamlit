@@ -147,8 +147,19 @@ def document_generator():
     docx_file = "to_pager_template.docx"
 
     doc_copy = Document(docx_file)
+    
     # Initialize the OpenAI client
     client = openai.OpenAI()
+
+    
+    # Create a ConfigParser instance
+    config = configparser.ConfigParser()
+    
+    # Read the .cfg file
+    config.read('assistant_config.cfg')  # Replace with your file path
+
+
+    
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
@@ -168,8 +179,16 @@ def document_generator():
             temp_responses = []
             answers_dict = {}
 
-            # Implement your document generation logic here
-            assistant_identifier = 'asst_ZwYHPxoqquAdDHmVyZrr8SgC'
+            configuration = fc.assistant_config(config, 'BO')
+    
+            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+    
+    
+            """
+            Adding files to the assistant
+            """
+            fc.load_file_to_assistant(client, assistant_identifier, pdf_docs)
+
             
             # Retrieve prompts and formatting requirements
             try:
