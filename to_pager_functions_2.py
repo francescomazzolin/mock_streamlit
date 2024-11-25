@@ -76,7 +76,7 @@ def load_file_to_assistant(client, assistant_identifier, pdf_docs):
 
     vector_store = client.beta.vector_stores.create(name="Business Overview")
 
-    file_streams = [open(path, "rb") for path in pdf_files]
+    #file_streams = [open(path, "rb") for path in pdf_files]
 
 
     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
