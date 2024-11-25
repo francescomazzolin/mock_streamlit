@@ -176,73 +176,73 @@ def document_generator():
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
 
-        if pdf_docs:
-            for uploaded_file in pdf_docs:
-                st.write(f"File Name: {uploaded_file.name}")
-                st.write("Attributes and methods of the UploadedFile object:")
-                st.write(dir(uploaded_file))  # List all attributes and methods
-        else:
-            st.write("No files uploaded.")
-
-        pdf_files = [pdf.name for pdf in pdf_docs]
-                
-        # Initialize variables
-        temp_responses = []
-        answers_dict = {}
-
-        configuration = fc.assistant_config(config, 'BO')
-
-        assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
-
-
-        """
-        Adding files to the assistant
-        """
-        fc.load_file_to_assistant(client, assistant_identifier, pdf_files)
-
-        
-        # Retrieve prompts and formatting requirements
-        try:
-            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
-                'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
-        except Exception as e:
-            st.error(f"Error retrieving prompts: {e}")
-            return
-        
-        for prompt_name, prompt_message in prompt_list:
-            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
-                                               prompt_message, additional_formatting_requirements,
-                                               answers_dict)
-            
-            assistant_response = fc.separate_thread_answers(openai, prompt_message, 
-                                                            assistant_identifier)
-            
-            if assistant_response:
-                temp_responses.append(assistant_response)
-                assistant_response = fc.remove_source_patterns(assistant_response)
-                answers_dict[prompt_name] = assistant_response
-                fc.document_filler(doc_copy, prompt_name, assistant_response)
+            if pdf_docs:
+                for uploaded_file in pdf_docs:
+                    st.write(f"File Name: {uploaded_file.name}")
+                    st.write("Attributes and methods of the UploadedFile object:")
+                    st.write(dir(uploaded_file))  # List all attributes and methods
             else:
-                st.warning(f"No response for prompt '{prompt_name}'.")
-
-
-        assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-
-
-        prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
-                                                                                        ['RM_Prompts', 'RM_Format_add'])
-        for prompt_name, prompt_message in prompt_list:
-
-            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
-                                            prompt_message, additional_formatting_requirements,
-                                            answers_dict)
-
-            assistant_response = fc.separate_thread_answers(client, prompt_message, 
-                                                            assistant_identifier)
+                st.write("No files uploaded.")
+    
+            pdf_files = [pdf.name for pdf in pdf_docs]
+                    
+            # Initialize variables
+            temp_responses = []
+            answers_dict = {}
+    
+            configuration = fc.assistant_config(config, 'BO')
+    
+            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+    
+    
+            """
+            Adding files to the assistant
+            """
+            fc.load_file_to_assistant(client, assistant_identifier, pdf_files)
+    
             
-
-            if assistant_response:
-                print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
+            # Retrieve prompts and formatting requirements
+            try:
+                prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
+                    'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
+            except Exception as e:
+                st.error(f"Error retrieving prompts: {e}")
+                return
+            
+            for prompt_name, prompt_message in prompt_list:
+                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+                                                   prompt_message, additional_formatting_requirements,
+                                                   answers_dict)
+                
+                assistant_response = fc.separate_thread_answers(openai, prompt_message, 
+                                                                assistant_identifier)
+                
+                if assistant_response:
+                    temp_responses.append(assistant_response)
+                    assistant_response = fc.remove_source_patterns(assistant_response)
+                    answers_dict[prompt_name] = assistant_response
+                    fc.document_filler(doc_copy, prompt_name, assistant_response)
+                else:
+                    st.warning(f"No response for prompt '{prompt_name}'.")
+    
+    
+            assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+    
+    
+            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
+                                                                                            ['RM_Prompts', 'RM_Format_add'])
+            for prompt_name, prompt_message in prompt_list:
+    
+                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+                                                prompt_message, additional_formatting_requirements,
+                                                answers_dict)
+    
+                assistant_response = fc.separate_thread_answers(client, prompt_message, 
+                                                                assistant_identifier)
+                
+    
+                if assistant_response:
+                    print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
 
                 temp_responses.append(assistant_response)
 
