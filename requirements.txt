@@ -7,3 +7,4 @@ PyPDF2
 langchain
 faiss-cpu  
 langchain-community
+openpyxl
