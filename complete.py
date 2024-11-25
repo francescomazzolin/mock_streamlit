@@ -190,7 +190,7 @@ def document_generator():
             """
             Adding files to the assistant
             """
-            fc.load_file_to_assistant(client, assistant_identifier, pdf_docs)
+            fc.load_file_to_assistant(client, assistant_identifier, pdf_files)
 
             
             # Retrieve prompts and formatting requirements
