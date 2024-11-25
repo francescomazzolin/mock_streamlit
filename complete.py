@@ -178,6 +178,7 @@ def document_generator():
 
             if pdf_docs:
                 st.write(f'{type(pdf_docs)}')
+                st.write(f'the first entry is: {pdf_docs[0]}')
                 
                 for uploaded_file in pdf_docs:
                     st.write(f"File Name: {uploaded_file.name}")
