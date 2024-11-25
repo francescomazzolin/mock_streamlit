@@ -3,9 +3,6 @@ python-dotenv
 openai
 pandas
 python-docx
-re
-time
-pickle
 PyPDF2
 langchain
 faiss-cpu  
