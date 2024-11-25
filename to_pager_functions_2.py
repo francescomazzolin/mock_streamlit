@@ -66,13 +66,13 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, assistant_identifier):
+def load_file_to_assistant(client, assistant_identifier, pdf_files):
 
     # Get the current directory
-    current_directory = os.getcwd()
+    #current_directory = os.getcwd()
 
     # Get a list of PDF files in the current directory
-    pdf_files = get_pdf_files_in_directory(current_directory)
+    #pdf_files = get_pdf_files_in_directory(current_directory)
 
     vector_store = client.beta.vector_stores.create(name="Business Overview")
 
