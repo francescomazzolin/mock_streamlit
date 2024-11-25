@@ -176,6 +176,12 @@ def document_generator():
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
 
+            if pdf_docs:
+                for pdf in pdf_docs:
+                    st.write(f"Uploaded file: {pdf.name}, Type: {type(pdf)}")
+            else:
+                st.write("No files uploaded.")
+
             pdf_files = [pdf.name for pdf in pdf_docs]
                     
             # Initialize variables
