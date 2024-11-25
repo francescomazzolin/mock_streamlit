@@ -176,11 +176,13 @@ def document_generator():
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
 
-            if pdf_docs:
-                for pdf in pdf_docs:
-                    st.write(f"Uploaded file: {pdf.name}, Type: {type(pdf)}")
-            else:
-                st.write("No files uploaded.")
+        if pdf_docs:
+            for uploaded_file in pdf_docs:
+                st.write(f"File Name: {uploaded_file.name}")
+                st.write("Attributes and methods of the UploadedFile object:")
+                st.write(dir(uploaded_file))  # List all attributes and methods
+        else:
+            st.write("No files uploaded.")
 
             pdf_files = [pdf.name for pdf in pdf_docs]
                     
