@@ -66,7 +66,7 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, assistant_identifier, pdf_files):
+def load_file_to_assistant(client, assistant_identifier, pdf_docs):
 
     # Get the current directory
     #current_directory = os.getcwd()
@@ -80,7 +80,7 @@ def load_file_to_assistant(client, assistant_identifier, pdf_files):
 
 
     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-    vector_store_id=vector_store.id, files=file_streams
+    vector_store_id=vector_store.id, files=pdf_docs
     )
 
     print(file_batch.status)
