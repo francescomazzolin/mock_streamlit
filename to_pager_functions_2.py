@@ -80,7 +80,7 @@ def load_file_to_assistant(client, assistant_identifier, pdf_docs):
 
 
     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-    vector_store_id=vector_store.id, files=pdf_docs
+    vector_store_id=vector_store.id, files=[pdf_docs]
     )
 
     print(file_batch.status)
