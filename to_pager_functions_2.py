@@ -1,6 +1,5 @@
 #%%
 
-
 """
 Packages for environment selection 
 """
