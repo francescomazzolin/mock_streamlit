@@ -12,6 +12,7 @@ import time
 import pickle
 import importlib
 import configparser
+import tiktoken
 
 # PDF Chatbot Libraries
 from PyPDF2 import PdfReader
