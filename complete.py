@@ -11,6 +11,7 @@ import re
 import time
 import pickle
 import importlib
+import tiktoken
 
 # PDF Chatbot Libraries
 from PyPDF2 import PdfReader
