@@ -186,8 +186,6 @@ def document_generator():
                     st.write(dir(uploaded_file))  # List all attributes and methods
             else:
                 st.write("No files uploaded.")
-    
-            pdf_files = [pdf.name for pdf in pdf_docs]
                     
             # Initialize variables
             temp_responses = []
@@ -201,7 +199,9 @@ def document_generator():
             """
             Adding files to the assistant
             """
-            fc.load_file_to_assistant(client, assistant_identifier, pdf_docs)
+            file_streams = pdf_docs
+            
+            fc.load_file_to_assistant(client, assistant_identifier, file_streams)
     
             
             # Retrieve prompts and formatting requirements
