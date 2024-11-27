@@ -35,6 +35,10 @@ if openai.api_key is None:
 # Set Page Configuration
 st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 
+# Display Banner Image
+banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
+st.image(banner_path, use_column_width=True)
+
 # Main Title
 st.title("AI Assistant Application")
 
@@ -114,13 +118,13 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
-    st.write(f'{type(pdf_docs)}')
+    #st.write(f'{type(pdf_docs)}')
     
 
     # Start the generation process
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
-
+            """
             if pdf_docs:
                 st.write(f'{type(pdf_docs)}')
                 st.write(f'the first entry is: {pdf_docs[0]}')
@@ -131,7 +135,7 @@ def document_generator():
                     st.write(dir(uploaded_file))  # List all attributes and methods
             else:
                 st.write("No files uploaded.")
-                    
+            """  
             # Initialize variables
             temp_responses = []
             answers_dict = {}
