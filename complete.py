@@ -119,7 +119,8 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
-    #st.write(f'{type(pdf_docs)}')
+    st.write(f'{type(pdf_docs)}')
+    st.write(f'{pdf_docs}')
     
 
     # Start the generation process
