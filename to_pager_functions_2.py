@@ -71,7 +71,7 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, vector_store_id ,assistant_identifier, pdf_docs):
+def load_file_to_assistant(client, vector_storeid ,assistant_identifier, pdf_docs):
 
     # Get the current directory
     #current_directory = os.getcwd()
@@ -79,7 +79,7 @@ def load_file_to_assistant(client, vector_store_id ,assistant_identifier, pdf_do
     # Get a list of PDF files in the current directory
     #pdf_files = get_pdf_files_in_directory(current_directory)
 
-    vector_store = client.beta.vector_stores.create(name="Business Overview")
+    #vector_store = client.beta.vector_stores.create(name="Business Overview")
 
     #pdf_dirs = [pdf._file_urls.upload_url for pdf in pdf_docs]
     
@@ -88,7 +88,7 @@ def load_file_to_assistant(client, vector_store_id ,assistant_identifier, pdf_do
 
 
     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-    vector_store_id=vector_store.id, files=pdf_docs
+    vector_store_id= vector_storeid, files=pdf_docs
     )
 
     print(file_batch.status)
