@@ -71,7 +71,9 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, vector_storeid ,assistant_identifier, pdf_docs):
+def load_file_to_assistant(client, vector_storeid ,
+                           assistant_identifier, pdf_docs,
+                           uploaded = True):
 
     # Get the current directory
     #current_directory = os.getcwd()
@@ -86,13 +88,33 @@ def load_file_to_assistant(client, vector_storeid ,assistant_identifier, pdf_doc
     #file_streams = [open(path, "rb") for path in pdf_files]
     #file_streams = [open(path, "rb") for path in pdf_dirs]
 
+    if uploaded: 
+        file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+        vector_store_id= vector_storeid, files=pdf_docs
+        )
 
-    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-    vector_store_id= vector_storeid, files=pdf_docs
-    )
+        print(file_batch.status)
+        print(file_batch.file_counts)
 
-    print(file_batch.status)
-    print(file_batch.file_counts)
+    else:
+
+        # Open each file in binary mode
+        file_streams = [open(file_path, "rb") for file_path in pdf_docs]
+
+    try:
+        # Upload the files to the vector store
+        file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+            vector_store_id= vector_storeid, files=file_streams
+        )
+
+        print(file_batch.status)
+        print(file_batch.file_counts)
+
+
+    finally:
+        # Ensure all file streams are closed
+        for stream in file_streams:
+            stream.close()
 
 
     assistant = client.beta.assistants.update(
