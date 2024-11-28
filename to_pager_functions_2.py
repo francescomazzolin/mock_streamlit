@@ -320,8 +320,6 @@ def html_retriever(uploaded_files):
                 html_file = BytesIO(html_content.encode('utf-8'))
                 html_file.name = f"page_{idx}.html"  # Assign a name for compatibility
                 retrieved_files.append(html_file)
-
-                retrieved_files.append(html_content)
                 
                 found.append(url)
                 break
