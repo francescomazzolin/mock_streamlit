@@ -143,11 +143,13 @@ def document_generator():
             configuration = fc.assistant_config(config, 'BO')
     
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+            file_streams = pdf_docs
             """
             print('ok')
     
   
-            file_streams = pdf_docs
+            
             
             fc.load_file_to_assistant(client, assistant_identifier, file_streams)
     
