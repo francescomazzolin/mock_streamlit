@@ -140,8 +140,12 @@ def document_generator():
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
 
             file_streams = pdf_docs
+
+            vector_store = client.beta.vector_stores.create(name="Business Overview")
+            vector_store_id = vector_store.id
             
-            fc.load_file_to_assistant(client, assistant_identifier, file_streams)
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, file_streams)
     
             
             # Retrieve prompts and formatting requirements
@@ -175,6 +179,12 @@ def document_generator():
     
             #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+            vector_store = client.beta.vector_stores.create(name="Reference Market")
+            vector_store_id = vector_store.id
+            
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, file_streams)
             
             st.write("Original file streams")
             st.write(f"{file_streams}")
@@ -186,13 +196,9 @@ def document_generator():
             st.write(f"{retrieved_files}")
             #st.write(f"{type(retrieved_files)}")
 
-            files_to_upload = file_streams.extend(retrieved_files)
-
-            st.write("Files to be uploaded")
-            st.write(f"{files_to_upload}")
-            #st.write(f"{type(files_to_upload)}")
-
-            fc.load_file_to_assistant(client, assistant_identifier, files_to_upload)
+            
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, retrieved_files)
 
 
     

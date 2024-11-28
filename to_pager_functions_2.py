@@ -71,7 +71,7 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, assistant_identifier, pdf_docs):
+def load_file_to_assistant(client, vector_store_id ,assistant_identifier, pdf_docs):
 
     # Get the current directory
     #current_directory = os.getcwd()
@@ -264,6 +264,10 @@ def get_pdf_text(pdf_docs):
 
 def html_retriever(uploaded_files):
     #st.write(f"{uploaded_files}")
+
+    html_dir = "retrieved_html_files"
+    os.makedirs(html_dir, exist_ok=True)
+
     extracted_text = get_pdf_text(uploaded_files)
     #st.write(f"{extracted_text}")
 
@@ -295,47 +299,31 @@ def html_retriever(uploaded_files):
     # Ensure the output directory exists
     #os.makedirs('html_files', exist_ok=True)
 
-    retrieved_files = []
+    # List to hold file paths
+    html_file_paths = []
 
+    # Download HTML content for each URL
     for idx in url_df.index:
-
-        counter = 0
-
-        while counter < len(url_df.columns):
-
-            url = url_df.iloc[idx, counter]
-
+        for column in url_df.columns:
+            url = url_df.loc[idx, column]
             try:
                 response = requests.get(url)
                 response.raise_for_status()  # Check for HTTP errors
-                html_content = response.text
-                #st.write(f"{html_content}")
-            
-            # Save HTML content to a file
-                #with open(f'html_files/page_{idx}.html', 'w', encoding='utf-8') as file:
-                    #file.write(html_content)
 
-                #print(f"Saved {url} as page_{idx}.html")
-            
-                html_file = BytesIO(html_content.encode('utf-8'))
-                html_file.name = f"page_{idx}.html"  # Assign a name for compatibility
-                retrieved_files.append(html_file)
-                st.write(f"HTML content retrieved from {url}")
-                
-                found.append(url)
-                break
+                # Save HTML content to a file
+                file_name = f"page_{idx}.html"
+                file_path = os.path.join(html_dir, file_name)
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(response.text)
 
-
+                html_file_paths.append(file_path)
+                st.write(f"HTML content retrieved and saved from {url}")
+                break  # Stop trying other columns once successful
             except Exception as e:
-            
-                counter += 1
+                st.warning(f"Failed to fetch {url}: {e}")
+                continue
 
-
-        if counter == len(url_df.columns):
-
-            print(f"Failed to save {url}")
-
-    return retrieved_files
+    return html_file_paths
 
     
 
