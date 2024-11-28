@@ -307,12 +307,14 @@ def html_retriever(uploaded_files):
                 response = requests.get(url)
                 response.raise_for_status()  # Check for HTTP errors
                 html_content = response.text
+                st.write(f"{html_content}")
 
             # Save HTML content to a file
                 with open(f'html_files/page_{idx}.html', 'w', encoding='utf-8') as file:
                     file.write(html_content)
 
                 print(f"Saved {url} as page_{idx}.html")
+                
                 file_list.append(html_content)
                 
                 found.append(url)
