@@ -263,9 +263,9 @@ def get_pdf_text(pdf_docs):
     return text
 
 def html_retriever(uploaded_files):
-    st.write(f"{uploaded_files}")
+    #st.write(f"{uploaded_files}")
     extracted_text = get_pdf_text(uploaded_files)
-    st.write(f"{extracted_text}")
+    #st.write(f"{extracted_text}")
 
     """
     Finding the URLs inside the files
