@@ -21,6 +21,82 @@ import re
 import time
 import pickle
 
+
+def get_pdf_files_in_directory(directory):
+    """Returns a list of PDF files in the given directory."""
+    return [file for file in os.listdir(directory) if file.endswith('.pdf')]
+
+
+"""
+==================================================================================================================
+Assistant Creator and manager functions
+==================================================================================================================
+"""
+
+
+def assistant_config(config, qualifier):
+
+    res = {}
+
+    model = config.get(f'assistant_{qualifier}', 'model', fallback=None)
+    instructions = config.get(f'assistant_{qualifier}', 'instruction', fallback=None)
+    temperature = config.getfloat(f'assistant_{qualifier}', 'temperature', fallback=None)
+    topP = config.getfloat(f'assistant_{qualifier}', 'topP', fallback=None)
+
+    res['model'] = model
+    res['instructions'] = instructions
+    res['temperature'] = temperature
+    res['topP'] = topP
+    return res 
+
+def create_assistant(client, name, config):
+    instructions = config['instructions']
+    model = config['model']
+    temp = config['temperature']
+    topP = config['topP']
+
+    assistant = client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        tools=[{"type": "file_search"}],
+        model=model,
+        temperature= temp,
+        top_p= topP
+
+    )
+    return assistant.id  # Return the assistant ID
+
+def load_file_to_assistant(client, assistant_identifier, pdf_docs):
+
+    # Get the current directory
+    #current_directory = os.getcwd()
+
+    # Get a list of PDF files in the current directory
+    #pdf_files = get_pdf_files_in_directory(current_directory)
+
+    vector_store = client.beta.vector_stores.create(name="Business Overview")
+
+    #pdf_dirs = [pdf._file_urls.upload_url for pdf in pdf_docs]
+    
+    #file_streams = [open(path, "rb") for path in pdf_files]
+    #file_streams = [open(path, "rb") for path in pdf_dirs]
+
+
+    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+    vector_store_id=vector_store.id, files=pdf_docs
+    )
+
+    print(file_batch.status)
+    print(file_batch.file_counts)
+
+
+    assistant = client.beta.assistants.update(
+    assistant_id= assistant_identifier,
+    tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
+    )
+
+
+
 """
 ==================================================================================================================
 Assistant Question and Answering functions

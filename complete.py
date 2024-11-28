@@ -11,7 +11,6 @@ import re
 import time
 import pickle
 import importlib
-import tiktoken
 
 # PDF Chatbot Libraries
 from PyPDF2 import PdfReader
@@ -148,8 +147,19 @@ def document_generator():
     docx_file = "to_pager_template.docx"
 
     doc_copy = Document(docx_file)
+    
     # Initialize the OpenAI client
     client = openai.OpenAI()
+
+    
+    # Create a ConfigParser instance
+    config = configparser.ConfigParser()
+    
+    # Read the .cfg file
+    config.read('assistant_config.cfg')  # Replace with your file path
+
+
+    
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
@@ -158,19 +168,40 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
+    st.write(f'{type(pdf_docs)}')
     
-
 
     # Start the generation process
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
-            
+
+            if pdf_docs:
+                st.write(f'{type(pdf_docs)}')
+                st.write(f'the first entry is: {pdf_docs[0]}')
+                
+                for uploaded_file in pdf_docs:
+                    st.write(f"File Name: {uploaded_file.name}")
+                    st.write("Attributes and methods of the UploadedFile object:")
+                    st.write(dir(uploaded_file))  # List all attributes and methods
+            else:
+                st.write("No files uploaded.")
+                    
             # Initialize variables
             temp_responses = []
             answers_dict = {}
-
-            # Implement your document generation logic here
-            assistant_identifier = 'asst_ZwYHPxoqquAdDHmVyZrr8SgC'
+    
+            configuration = fc.assistant_config(config, 'BO')
+    
+            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+    
+    
+            """
+            Adding files to the assistant
+            """
+            file_streams = pdf_docs
+            
+            fc.load_file_to_assistant(client, assistant_identifier, file_streams)
+    
             
             # Retrieve prompts and formatting requirements
             try:
@@ -195,46 +226,46 @@ def document_generator():
                     fc.document_filler(doc_copy, prompt_name, assistant_response)
                 else:
                     st.warning(f"No response for prompt '{prompt_name}'.")
-
-
+    
+    
             assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-
-
+    
+    
             prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
                                                                                             ['RM_Prompts', 'RM_Format_add'])
             for prompt_name, prompt_message in prompt_list:
-
+    
                 prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
                                                 prompt_message, additional_formatting_requirements,
                                                 answers_dict)
-
+    
                 assistant_response = fc.separate_thread_answers(client, prompt_message, 
                                                                 assistant_identifier)
                 
-
+    
                 if assistant_response:
                     print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
 
-                    temp_responses.append(assistant_response)
+                temp_responses.append(assistant_response)
 
-                    assistant_response = fc.remove_source_patterns(assistant_response)
+                assistant_response = fc.remove_source_patterns(assistant_response)
 
-                    answers_dict[prompt_name] = assistant_response
+                answers_dict[prompt_name] = assistant_response
 
-                    fc.document_filler(doc_copy, prompt_name, assistant_response)
+                fc.document_filler(doc_copy, prompt_name, assistant_response)
 
-            # Save the modified document
-            output_path = 'generated_document.docx'
-            doc_copy.save(output_path)
-            st.success(f'Document generated and saved as {output_path}')
-            # Provide a download link
-            with open(output_path, "rb") as doc_file:
-                btn = st.download_button(
-                    label="Download Document",
-                    data=doc_file,
-                    file_name=output_path,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+        # Save the modified document
+        output_path = 'generated_document.docx'
+        doc_copy.save(output_path)
+        st.success(f'Document generated and saved as {output_path}')
+        # Provide a download link
+        with open(output_path, "rb") as doc_file:
+            btn = st.download_button(
+                label="Download Document",
+                data=doc_file,
+                file_name=output_path,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
 # Main Function
 def main():

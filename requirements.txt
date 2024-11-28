@@ -8,4 +8,5 @@ langchain
 faiss-cpu  
 langchain-community
 openpyxl
+
 tiktoken
