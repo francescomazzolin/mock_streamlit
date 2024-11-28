@@ -20,6 +20,8 @@ import re
 import time
 import pickle
 import requests
+from PyPDF2 import PdfReader
+
 
 
 def get_pdf_files_in_directory(directory):
