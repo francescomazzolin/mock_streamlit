@@ -12,20 +12,23 @@ import time
 import pickle
 import importlib
 import configparser
-
-# PDF Chatbot Libraries
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
+import tiktoken
+from html_template import css, bot_template,user_template
 
 # Custom Functions Module
 import to_pager_functions_2 as fc
 importlib.reload(fc)
 
+import pdf_chat_functions as pc
+importlib.reload(pc)
+
+def display_chat(user_message=None, bot_message=None):
+    # Display user message
+    if user_message:
+        st.markdown(user_template.replace("{{MSG}}", user_message), unsafe_allow_html=True)
+    # Display bot message
+    if bot_message:
+        st.markdown(bot_template.replace("{{MSG}}", bot_message), unsafe_allow_html=True)
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OpenAI_key")
@@ -38,6 +41,10 @@ if openai.api_key is None:
 # Set Page Configuration
 st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 
+# Display Banner Image
+banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
+st.image(banner_path, use_column_width=True)
+
 # Main Title
 st.title("AI Assistant Application")
 
@@ -47,69 +54,19 @@ option = st.selectbox(
     ('Chatbot with PDFs', 'Document Generator')
 )
 
-# Supporting Functions for Chatbot
-def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        try:
-            pdf_reader = PdfReader(pdf)
-            for page in pdf_reader.pages:
-                text += page.extract_text() or ""
-        except Exception as e:
-            st.error(f"Error processing {pdf.name}: {e}")
-    return text
-
-def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    chunks = text_splitter.split_text(text)
-    return chunks
-
-def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
-
-def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI(
-        model_name="gpt-4", 
-        temperature=0.1,
-        openai_api_key=openai.api_key
-    )
-    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        memory=memory
-    )
-    return conversation_chain
-
-def handle_userinput(user_question):
-    if st.session_state.conversation is None:
-        st.warning("Please upload and process the documents first!")
-        return
-
-    # Get the response from the conversation chain
-    response = st.session_state.conversation({'question': user_question})
-    answer = response['answer']  # Assuming response contains an 'answer' key
-
-    # Display the response in Streamlit
-    st.write(answer)
 
 # Chatbot Functionality
 def chatbot_with_pdfs():
-
     st.header('Chat with multiple PDFs :books:')
+    
+    # Include CSS
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
     # Initialize Session State
     if 'conversation' not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None  
+        st.session_state.chat_history = []
 
     # Sidebar for uploading PDFs
     with st.sidebar:
@@ -120,17 +77,16 @@ def chatbot_with_pdfs():
             if pdf_docs:
                 with st.spinner('Processing'):
                     # Get PDF text
-                    raw_text = get_pdf_text(pdf_docs)
+                    raw_text = pc.get_pdf_text(pdf_docs)
                     
                     # Get the text chunks
-                    text_chunks = get_text_chunks(raw_text)
-                    # st.write(text_chunks)  # Optionally display chunks
+                    text_chunks = pc.get_text_chunks(raw_text)
 
-                    # Create our vector store with embeddings
-                    vectorstore = get_vectorstore(text_chunks)
+                    # Create vector store with embeddings
+                    vectorstore = pc.get_vectorstore(text_chunks)
 
                     # Create conversation chain
-                    st.session_state.conversation = get_conversation_chain(vectorstore)
+                    st.session_state.conversation = pc.get_conversation_chain(vectorstore)
                     st.success('Processing complete! You can now ask questions.')
             else:
                 st.warning('Please upload at least one PDF file before processing.')
@@ -138,7 +94,21 @@ def chatbot_with_pdfs():
     # Input for questions
     user_question = st.text_input('Ask a question about your documents:')
     if user_question:
-        handle_userinput(user_question)
+        # Display the user message
+        display_chat(user_message=user_question)
+
+        # Get response from the chatbot
+        response = st.session_state.conversation.run(user_question)
+
+        # Display the bot message
+        display_chat(bot_message=response)
+
+        # Save to chat history
+        st.session_state.chat_history.append({"user": user_question, "bot": response})
+
+    # Display chat history
+    for chat in st.session_state.chat_history:
+        display_chat(user_message=chat["user"], bot_message=chat["bot"])
 
 # Document Generator Functionality
 def document_generator():
@@ -169,13 +139,13 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
-    st.write(f'{type(pdf_docs)}')
+    #st.write(f'{type(pdf_docs)}')
     
 
     # Start the generation process
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
-
+            """
             if pdf_docs:
                 st.write(f'{type(pdf_docs)}')
                 st.write(f'the first entry is: {pdf_docs[0]}')
@@ -186,7 +156,7 @@ def document_generator():
                     st.write(dir(uploaded_file))  # List all attributes and methods
             else:
                 st.write("No files uploaded.")
-                    
+            """  
             # Initialize variables
             temp_responses = []
             answers_dict = {}
@@ -279,3 +249,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# %%
