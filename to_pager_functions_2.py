@@ -19,6 +19,7 @@ import pandas as pd
 import re
 import time
 import pickle
+import requests
 
 
 def get_pdf_files_in_directory(directory):
@@ -237,6 +238,97 @@ def separate_thread_answers(client, prompt_message_format,
                 break
 
     return assistant_response
+
+
+"""
+==================================================================================================================
+REFERENCE MARKET PART
+==================================================================================================================
+"""
+
+def get_pdf_text(pdf_docs): 
+    """Extracts text from a list of PDF files."""
+    text = "" 
+    for pdf in pdf_docs: 
+        pdf_reader = PdfReader(pdf) 
+
+        for page in pdf_reader.pages: 
+            text += page.extract_text() or "" 
+                
+    return text
+
+def html_retriever(uploaded_files):
+
+    extracted_text = get_pdf_text(uploaded_files)
+
+    """
+    Finding the URLs inside the files
+    """
+        
+    url_df = pd.DataFrame(columns = ['single_line', 'double_line', 'triple_line'])
+    url_pattern = r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    lines = extracted_text.split("\n")
+
+    found = []
+
+    for idx, line in enumerate(lines):
+
+        if re.search(r"https?://", line):
+
+            l = []
+            s = re.findall(url_pattern, line)
+            l.append(s[0])
+
+            l.append(s[0] + lines[idx + 1])
+            l.append(s[0] + "".join(lines[idx+1:idx+3]))
+
+            url_df.loc[len(url_df)] = l
+
+    
+        
+    # Ensure the output directory exists
+    #os.makedirs('html_files', exist_ok=True)
+
+    file_list = []
+
+    for idx in url_df.index:
+
+        counter = 0
+
+        while counter < len(url_df.columns):
+
+            url = url_df.iloc[idx, counter]
+
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # Check for HTTP errors
+                html_content = response.text
+
+            # Save HTML content to a file
+                with open(f'html_files/page_{idx}.html', 'w', encoding='utf-8') as file:
+                    file.write(html_content)
+
+                print(f"Saved {url} as page_{idx}.html")
+                file_list.append(html_content)
+                
+                found.append(url)
+                break
+
+
+            except Exception as e:
+            
+                counter += 1
+
+
+        if counter == len(url_df.columns):
+
+            print(f"Failed to save {url}")
+
+    return file_list
+
+    
+
+
 
 
 """

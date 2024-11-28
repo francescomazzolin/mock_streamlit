@@ -83,7 +83,7 @@ def chatbot_with_pdfs():
     # Input for questions
     user_question = st.text_input('Ask a question about your documents:')
     if user_question:
-        handle_userinput(user_question)
+        st.handle_userinput(user_question)
 
 # Document Generator Functionality
 def document_generator():
@@ -114,24 +114,11 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
-    st.write(f'{type(pdf_docs)}')
-    
-
+   
     # Start the generation process
     if st.button('Generate Document'):
         with st.spinner('Generating document...'):
 
-            if pdf_docs:
-                st.write(f'{type(pdf_docs)}')
-                st.write(f'the first entry is: {pdf_docs[0]}')
-                
-                for uploaded_file in pdf_docs:
-                    st.write(f"File Name: {uploaded_file.name}")
-                    st.write("Attributes and methods of the UploadedFile object:")
-                    st.write(dir(uploaded_file))  # List all attributes and methods
-            else:
-                st.write("No files uploaded.")
-                    
             # Initialize variables
             temp_responses = []
             answers_dict = {}
@@ -157,6 +144,7 @@ def document_generator():
                 st.error(f"Error retrieving prompts: {e}")
                 return
             
+
             for prompt_name, prompt_message in prompt_list:
                 prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
                                                    prompt_message, additional_formatting_requirements,
@@ -172,10 +160,22 @@ def document_generator():
                     fc.document_filler(doc_copy, prompt_name, assistant_response)
                 else:
                     st.warning(f"No response for prompt '{prompt_name}'.")
+
+
+            """
+            REFERENCE MARKET CREATION
+            """
     
+            #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
     
-            assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-    
+            retrieved_files = fc.html_retriever(file_streams)
+
+            files_to_upload = file_streams.extend(retrieved_files)
+
+            fc.load_file_to_assistant(client, assistant_identifier, files_to_upload)
+
+
     
             prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
                                                                                             ['RM_Prompts', 'RM_Format_add'])
