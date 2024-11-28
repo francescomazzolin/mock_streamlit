@@ -21,6 +21,8 @@ import time
 import pickle
 import requests
 from PyPDF2 import PdfReader
+from io import BytesIO
+
 
 import streamlit as st
 
@@ -293,7 +295,7 @@ def html_retriever(uploaded_files):
     # Ensure the output directory exists
     #os.makedirs('html_files', exist_ok=True)
 
-    file_list = []
+    retrieved_files = []
 
     for idx in url_df.index:
 
@@ -307,15 +309,19 @@ def html_retriever(uploaded_files):
                 response = requests.get(url)
                 response.raise_for_status()  # Check for HTTP errors
                 html_content = response.text
-                st.write(f"{html_content}")
-
+                #st.write(f"{html_content}")
+            
             # Save HTML content to a file
-                with open(f'html_files/page_{idx}.html', 'w', encoding='utf-8') as file:
-                    file.write(html_content)
+                #with open(f'html_files/page_{idx}.html', 'w', encoding='utf-8') as file:
+                    #file.write(html_content)
 
-                print(f"Saved {url} as page_{idx}.html")
-                
-                file_list.append(html_content)
+                #print(f"Saved {url} as page_{idx}.html")
+            
+                html_file = BytesIO(html_content.encode('utf-8'))
+                html_file.name = f"page_{idx}.html"  # Assign a name for compatibility
+                retrieved_files.append(html_file)
+
+                retrieved_files.append(html_content)
                 
                 found.append(url)
                 break
@@ -330,7 +336,7 @@ def html_retriever(uploaded_files):
 
             print(f"Failed to save {url}")
 
-    return file_list
+    return retrieved_files
 
     
 

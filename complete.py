@@ -188,16 +188,16 @@ def document_generator():
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
             
             st.write("Original file streams")
-
             st.write(f"{file_streams}")
             st.write(f"{type(file_streams)}")
     
             retrieved_files = fc.html_retriever(file_streams)
+
             st.write("Retrieved files")
             st.write(f"{retrieved_files}")
             st.write(f"{type(retrieved_files)}")
-            files_to_upload = file_streams.extend(retrieved_files)
 
+            files_to_upload = file_streams.extend(retrieved_files)
 
             st.write("Files to be uploaded")
             st.write(f"{files_to_upload}")
