@@ -71,20 +71,21 @@ st.image(banner_path, use_column_width=True)
 # Main Title
 #st.title("AI Assistant Application")
 
+# Drop-Down Menu for Functionality Selection
 st.markdown("""
     <style>
-    /* Increase font size for the selectbox label */
-    div[data-testid="stSelectbox"] label {
-        font-size: 20px;
+    .custom-label {
+        font-size: 20px;  /* Adjust the size as needed */
         font-weight: bold;
-        color: #333333; /* Optional: Adjust label color */
+        color: #333333;  /* Optional: Change the color */
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Drop-Down Menu for Functionality Selection
+# Use st.selectbox with HTML label
+st.markdown('<div class="custom-label">Select a model:</div>', unsafe_allow_html=True)
 option = st.selectbox(
-    'Select a model:',
+    '',  # Leave label empty because it's already displayed above
     ('Chatbot with PDFs', 'Document Generator')
 )
 
