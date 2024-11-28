@@ -43,8 +43,7 @@ st.markdown("""
     /* Apply a generic font globally */
     html, body, [class*="css"] {
         font-family: Arial, sans-serif;
-    }
-    
+    }   
     
     /* Optional: Customize specific elements */
     h1, h2, h3, h4, h5, h6 {
