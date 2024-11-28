@@ -198,7 +198,8 @@ def document_generator():
 
             
             fc.load_file_to_assistant(client, vector_store_id,
-                                      assistant_identifier, retrieved_files)
+                                      assistant_identifier, retrieved_files,
+                                      uploaded = False)
 
 
     
