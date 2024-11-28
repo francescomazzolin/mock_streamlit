@@ -42,8 +42,8 @@ if openai.api_key is None:
 st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 
 # Display Banner Image
-banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
-st.image(banner_path, use_column_width=True)
+#banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
+#st.image(banner_path, use_column_width=True)
 
 # Main Title
 st.title("AI Assistant Application")
