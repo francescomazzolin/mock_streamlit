@@ -22,6 +22,7 @@ import pickle
 import requests
 from PyPDF2 import PdfReader
 
+import streamlit as st
 
 
 def get_pdf_files_in_directory(directory):
@@ -260,8 +261,9 @@ def get_pdf_text(pdf_docs):
     return text
 
 def html_retriever(uploaded_files):
-
+    st.write(f"{uploaded_files}")
     extracted_text = get_pdf_text(uploaded_files)
+    st.write(f"{extracted_text}")
 
     """
     Finding the URLs inside the files

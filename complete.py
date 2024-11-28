@@ -254,3 +254,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+x = document_generator()
