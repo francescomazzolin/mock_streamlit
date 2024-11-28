@@ -34,7 +34,7 @@ if openai.api_key is None:
     st.stop()
 
 # Set Page Configuration
-st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
+st.set_page_config(page_title='AI Gradiente', page_icon=':robot:')
 
 # Add custom font and styles
 st.markdown("""
@@ -70,7 +70,17 @@ banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct
 st.image(banner_path, use_column_width=True)
 
 # Main Title
-st.title("AI Assistant Application")
+#st.title("AI Assistant Application")
+
+st.markdown("""
+    <style>
+    /* Increase the font size of the select box title */
+    label[for="Select a functionality:"] {
+        font-size: 20px;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Drop-Down Menu for Functionality Selection
 option = st.selectbox(
