@@ -145,11 +145,6 @@ def document_generator():
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
 
             file_streams = pdf_docs
-            """
-            print('ok')
-    
-  
-            
             
             fc.load_file_to_assistant(client, assistant_identifier, file_streams)
     
@@ -178,8 +173,7 @@ def document_generator():
                     fc.document_filler(doc_copy, prompt_name, assistant_response)
                 else:
                     st.warning(f"No response for prompt '{prompt_name}'.")
-            """
-            print('ok')
+            
             """
             REFERENCE MARKET CREATION
             """
@@ -200,7 +194,7 @@ def document_generator():
             files_to_upload = file_streams.extend(retrieved_files)
 
             st.write("Files to be uploaded")
-            #st.write(f"{files_to_upload}")
+            st.write(f"{files_to_upload}")
             #st.write(f"{type(files_to_upload)}")
 
             fc.load_file_to_assistant(client, assistant_identifier, files_to_upload)
