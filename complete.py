@@ -36,6 +36,35 @@ if openai.api_key is None:
 # Set Page Configuration
 st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 
+# Add custom font and styles
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    /* Apply the font globally */
+    html, body, [class*="css"] {
+        font-family: 'Roboto', sans-serif;
+    }
+    
+    /* Optional: Customize specific elements */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 500;
+        color: #333333;  /* Adjust header color if needed */
+    }
+    .stButton>button {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
+        color: white;
+        background-color: #D32F2F;  /* Button background color */
+        border-radius: 5px;
+        border: none;
+    }
+    .stMarkdown {
+        color: #424242;  /* Paragraph text color */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Display Banner Image
 banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
 st.image(banner_path, use_column_width=True)
@@ -109,8 +138,6 @@ def document_generator():
     # Read the .cfg file
     config.read('assistant_config.cfg')  # Replace with your file path
 
-
-    
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
