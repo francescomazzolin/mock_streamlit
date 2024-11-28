@@ -142,6 +142,8 @@ def document_generator():
 
             file_streams = pdf_docs
 
+            st.write(f'{file_streams}')
+
             vector_store = client.beta.vector_stores.create(name="Business Overview")
             vector_store_id = vector_store.id
             
