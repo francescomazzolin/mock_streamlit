@@ -118,7 +118,7 @@ def document_generator():
     # Template Path Input
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
-    st.write(f'{type(pdf_docs)}')
+    #st.write(f'{type(pdf_docs)}')
     
 
     # Start the generation process
@@ -126,13 +126,8 @@ def document_generator():
         with st.spinner('Generating document...'):
 
             if pdf_docs:
-                st.write(f'{type(pdf_docs)}')
-                st.write(f'the first entry is: {pdf_docs[0]}')
+                st.write('Files correctly uploaded')
                 
-                for uploaded_file in pdf_docs:
-                    st.write(f"File Name: {uploaded_file.name}")
-                    st.write("Attributes and methods of the UploadedFile object:")
-                    st.write(dir(uploaded_file))  # List all attributes and methods
             else:
                 st.write("No files uploaded.")
                     
