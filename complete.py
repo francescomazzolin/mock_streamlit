@@ -194,7 +194,7 @@ def document_generator():
             retrieved_files = fc.html_retriever(file_streams)
 
             st.write("Retrieved files")
-            #st.write(f"{retrieved_files}")
+            st.write(f"{retrieved_files}")
             #st.write(f"{type(retrieved_files)}")
 
             files_to_upload = file_streams.extend(retrieved_files)
