@@ -39,12 +39,12 @@ st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 # Add custom font and styles
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    
-    /* Apply the font globally */
+
+    /* Apply a generic font globally */
     html, body, [class*="css"] {
-        font-family: 'Roboto', sans-serif;
+        font-family: Arial, sans-serif;
     }
+    
     
     /* Optional: Customize specific elements */
     h1, h2, h3, h4, h5, h6 {
@@ -52,7 +52,7 @@ st.markdown("""
         color: #333333;  /* Adjust header color if needed */
     }
     .stButton>button {
-        font-family: 'Roboto', sans-serif;
+        font-family: Arial, sans-serif;
         font-weight: 700;
         color: white;
         background-color: #D32F2F;  /* Button background color */
