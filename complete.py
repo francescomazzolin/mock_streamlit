@@ -40,14 +40,10 @@ st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 st.markdown("""
     <style>
 
-    /* Import the desired font from Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-    /* Apply the font globally */
+    /* Apply a generic font globally */
     html, body, [class*="css"] {
-        font-family: 'Roboto', sans-serif;
-    }
-    
+        font-family: Arial, sans-serif;
+    }   
     
     /* Optional: Customize specific elements */
     h1, h2, h3, h4, h5, h6 {
