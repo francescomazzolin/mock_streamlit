@@ -101,20 +101,20 @@ def load_file_to_assistant(client, vector_storeid ,
         # Open each file in binary mode
         file_streams = [open(file_path, "rb") for file_path in pdf_docs]
 
-    try:
-        # Upload the files to the vector store
-        file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-            vector_store_id= vector_storeid, files=file_streams
-        )
+        try:
+            # Upload the files to the vector store
+            file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+                vector_store_id= vector_storeid, files=file_streams
+            )
 
-        print(file_batch.status)
-        print(file_batch.file_counts)
+            print(file_batch.status)
+            print(file_batch.file_counts)
 
 
-    finally:
-        # Ensure all file streams are closed
-        for stream in file_streams:
-            stream.close()
+        finally:
+            # Ensure all file streams are closed
+            for stream in file_streams:
+                stream.close()
 
 
     assistant = client.beta.assistants.update(
