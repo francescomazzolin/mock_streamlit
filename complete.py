@@ -25,7 +25,7 @@ importlib.reload(pc)
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OpenAI_key")
+openai.api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
 # Check API key
 if openai.api_key is None:
