@@ -176,8 +176,9 @@ def document_generator():
             """
             REFERENCE MARKET CREATION
             """
-    
+            
             #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+            configuration = fc.assistant_config(config, 'RM')
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
 
             vector_store = client.beta.vector_stores.create(name="Reference Market")
