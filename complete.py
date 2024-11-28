@@ -74,17 +74,17 @@ st.image(banner_path, use_column_width=True)
 
 st.markdown("""
     <style>
-    /* Increase the font size of the select box title */
-    label[for="Select a functionality:"] {
-        font-size: 20px;
-        font-weight: bold;
+    /* Increase the font size of the select box label dynamically */
+    div[data-baseweb="select"] > label {
+        font-size: 20px !important;
+        font-weight: bold !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # Drop-Down Menu for Functionality Selection
 option = st.selectbox(
-    'Select a functionality:',
+    'Select a model:',
     ('Chatbot with PDFs', 'Document Generator')
 )
 
