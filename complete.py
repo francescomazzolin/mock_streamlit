@@ -73,10 +73,11 @@ st.image(banner_path, use_column_width=True)
 
 st.markdown("""
     <style>
-    /* Increase the font size of the select box label dynamically */
-    div[data-baseweb="select"] > label {
-        font-size: 20px !important;
-        font-weight: bold !important;
+    /* Increase font size for the selectbox label */
+    div[data-testid="stSelectbox"] label {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333333; /* Optional: Adjust label color */
     }
     </style>
 """, unsafe_allow_html=True)
