@@ -97,7 +97,7 @@ def load_file_to_assistant(client, vector_storeid ,assistant_identifier, pdf_doc
 
     assistant = client.beta.assistants.update(
     assistant_id= assistant_identifier,
-    tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
+    tool_resources={"file_search": {"vector_store_ids": [vector_storeid]}},
     )
 
 
