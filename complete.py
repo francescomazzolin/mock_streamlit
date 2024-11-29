@@ -1,5 +1,4 @@
 #%%
-
 # Import Libraries
 import streamlit as st
 import os
@@ -14,18 +13,12 @@ import importlib
 import tiktoken 
 import configparser
 
-# PDF Chatbot Libraries
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
-
 # Custom Functions Module
 import to_pager_functions_2 as fc
 importlib.reload(fc)
+
+import pdf_chat_functions as pc
+importlib.reload(pc)
 
 # Load environment variables
 load_dotenv()
@@ -36,113 +29,165 @@ if openai.api_key is None:
     st.error("Error: OpenAI API key not found. Make sure it is set in environment variables or Streamlit secrets.")
     st.stop()
 
+#This makes sure that none of the warnings will be printed on screen
+#st.set_option('deprecation.showwarning', False)
+#st.set_option('global.showWarningOnDirectExecution', False)
+
 # Set Page Configuration
-st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
+st.set_page_config(page_title='AI Gradiente', page_icon=':robot:')
+#st.subheader('SUCCESS COMES WHEN PREPARATION MEETS OPPORTUNITY')
+
+# Add custom font and styles
+st.markdown("""
+    <style>
+
+    /* Apply a generic font globally */
+    html, body, [class*="css"] {
+        font-family: Arial, sans-serif;
+    }   
+    
+    /* Optional: Customize specific elements */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 500;
+        color: #003866;  /* Adjust header color if needed */
+    }
+    .stButton>button {
+        font-family: Arial, sans-serif;
+        font-weight: 700;
+        color: white;
+        background-color: #E41A13;  /* Button background color */
+        border-radius: 5px;
+        border: none;
+    }
+    .stMarkdown {
+        color: #003866;  /* Paragraph text color */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Display Banner Image
+banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
+st.image(banner_path, use_container_width=True)
 
 # Main Title
-st.title("AI Assistant Application")
+#st.title("AI Assistant Application")
 
-# Drop-Down Menu for Functionality Selection
-option = st.selectbox(
-    'Select a functionality:',
-    ('Chatbot with PDFs', 'Document Generator')
+st.markdown("<h3 style='font-size:25px;'>Select your application:</h3>", unsafe_allow_html=True)
+
+# Inject custom CSS to reduce the margin above the select box
+st.markdown(
+    """
+    <style>
+    div[data-testid="stSelectbox"] {
+        margin-top: -50px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
-# Supporting Functions for Chatbot
-def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        try:
-            pdf_reader = PdfReader(pdf)
-            for page in pdf_reader.pages:
-                text += page.extract_text() or ""
-        except Exception as e:
-            st.error(f"Error processing {pdf.name}: {e}")
-    return text
-
-def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    chunks = text_splitter.split_text(text)
-    return chunks
-
-def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
-
-def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI(
-        model_name="gpt-4", 
-        temperature=0.1,
-        openai_api_key=openai.api_key
-    )
-    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        memory=memory
-    )
-    return conversation_chain
-
-def handle_userinput(user_question):
-    if st.session_state.conversation is None:
-        st.warning("Please upload and process the documents first!")
-        return
-
-    # Get the response from the conversation chain
-    response = st.session_state.conversation({'question': user_question})
-    answer = response['answer']  # Assuming response contains an 'answer' key
-
-    # Display the response in Streamlit
-    st.write(answer)
+option = st.selectbox(
+    '',  # Leave label empty because it's already displayed above
+    ('Select an application', 'Chatbot with PDFs', 'Document Generator')
+)
 
 # Chatbot Functionality
-def chatbot_with_pdfs():
 
-    st.header('Chat with multiple PDFs :books:')
+# Chatbot Functionality
+def chatbot_with_pdfs(default=True, pdf_docs=None):
+    if default:
+        st.header('Chat with multiple PDFs :books:')
 
     # Initialize Session State
     if 'conversation' not in st.session_state:
         st.session_state.conversation = None
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None  
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
 
-    # Sidebar for uploading PDFs
-    with st.sidebar:
-        st.subheader('Your documents')
-        pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
-                                    accept_multiple_files=True)
-        if st.button('Process'):
-            if pdf_docs:
-                with st.spinner('Processing'):
-                    # Get PDF text
-                    raw_text = get_pdf_text(pdf_docs)
-                    
-                    # Get the text chunks
-                    text_chunks = get_text_chunks(raw_text)
-                    # st.write(text_chunks)  # Optionally display chunks
+    if default:
+        # Existing code for default behavior
+        with st.sidebar:
+            st.subheader('Your documents')
+            pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
+                                        accept_multiple_files=True)
+            if st.button('Process'):
+                if pdf_docs:
+                    with st.spinner('Processing'):
+                        # Process PDFs
+                        raw_text = pc.get_pdf_text(pdf_docs)
+                        text_chunks = pc.get_text_chunks(raw_text)
+                        vectorstore = pc.get_vectorstore(text_chunks)
+                        st.session_state.conversation = pc.get_conversation_chain(vectorstore)
+                        st.session_state.chat_history = []
+                        st.success('Processing complete! You can now ask questions.')
+                else:
+                    st.warning('Please upload at least one PDF file before processing.')
+    else:
+        # Process PDFs when default is False
+        if pdf_docs:
+            with st.spinner('Processing'):
+                raw_text = pc.get_pdf_text(pdf_docs)
+                text_chunks = pc.get_text_chunks(raw_text)
+                vectorstore = pc.get_vectorstore(text_chunks)
+                st.session_state.conversation = pc.get_conversation_chain(vectorstore)
+                st.session_state.chat_history = []
+                st.success('Processing complete! You can now ask questions.')
+        else:
+            st.error('No documents to process. Please provide PDFs.')
 
-                    # Create our vector store with embeddings
-                    vectorstore = get_vectorstore(text_chunks)
+    # The rest of your chatbot code remains the same
+    # ...
 
-                    # Create conversation chain
-                    st.session_state.conversation = get_conversation_chain(vectorstore)
-                    st.success('Processing complete! You can now ask questions.')
-            else:
-                st.warning('Please upload at least one PDF file before processing.')
 
     # Input for questions
-    user_question = st.text_input('Ask a question about your documents:')
-    if user_question:
-        handle_userinput(user_question)
+    user_question = st.chat_input('Ask a question about your documents:')
+
+    # Process the question
+    if user_question and st.session_state.conversation:
+        with st.spinner("Fetching response..."):
+            try:
+                # Get the response from the conversation chain
+                response = st.session_state.conversation({'question': user_question})
+                answer = response['answer']  # Assuming response contains an 'answer' key
+
+                # Update chat history in session state
+                st.session_state.chat_history.append({'question': user_question, 'answer': answer})
+              # Refresh UI to display the updated chat history
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    # Display chat history with images
+    if st.session_state.chat_history:
+        for idx, chat in enumerate(st.session_state.chat_history):
+            # User's question
+            st.markdown(
+                f"""
+                <div style="background-color: #f0f2f6; border: 1px solid #d6d6d6; border-radius: 25px; padding: 10px; margin-bottom: 10px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png" alt="user" width="30" style="vertical-align: middle; margin-right: 10px;">
+                    <b>You:</b> {chat['question']}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            # Chatbot's response
+            st.markdown(
+                f"""
+                    <b>AI Assistant:</b> {chat['answer']}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # Spacer to push the input box to the bottom
+    st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
+
 
 # Document Generator Functionality
 def document_generator():
+    
+    milestone = 1
+    steps = 5
 
     # Preloaded Files
     xlsx_file = "prompt_db.xlsx"
@@ -160,106 +205,187 @@ def document_generator():
     # Read the .cfg file
     config.read('assistant_config.cfg')  # Replace with your file path
 
-
-    
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
-    st.subheader('Configuration')
+    st.markdown('Upload your files here:')
+
+    st.markdown(
+    """
+    <style>
+    div[data-testid="stFileUploader"] {
+        margin-top: -50px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+
 
     # Template Path Input
-    pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
-                                    accept_multiple_files=True)
-    st.write(f'{type(pdf_docs)}')
+    pdf_docs = st.file_uploader('',accept_multiple_files=True)
+    #st.write(f'{type(pdf_docs)}')
     
+    st.markdown('Project title:')
+
+    hide_enter_message = (
+    """
+    <style>
+    div[data-testid="stTextInput"] {
+        margin-top: -50px;
+    }
+    div[data-testid="InputInstructions"] > span:nth-child(1) {
+    visibility: hidden;
+    }
+    </style>
+    """   )
+    st.markdown(hide_enter_message, unsafe_allow_html=True)
+    project_title = st.text_input("")
+
+    gen_button = st.button('Generate Document')
 
     # Start the generation process
-    if st.button('Generate Document'):
-        with st.spinner('Generating document...'):
+    if gen_button:
+    
+        
+        #if pdf_docs:
+            #st.write('Files correctly uploaded')
+            
+        #else:
+            #st.write("No files uploaded.")
 
-            if pdf_docs:
-                st.write(f'{type(pdf_docs)}')
-                st.write(f'the first entry is: {pdf_docs[0]}')
+        
+
+        progress_bar = st.progress(0)  # Initialize progress bar
+        message_placeholder = st.empty()  # Placeholder for dynamic text
+
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Learning from the presentation...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
                 
-                for uploaded_file in pdf_docs:
-                    st.write(f"File Name: {uploaded_file.name}")
-                    st.write("Attributes and methods of the UploadedFile object:")
-                    st.write(dir(uploaded_file))  # List all attributes and methods
-            else:
-                st.write("No files uploaded.")
-                    
-            # Initialize variables
-            temp_responses = []
-            answers_dict = {}
-    
-            configuration = fc.assistant_config(config, 'BO')
-    
-            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
-    
-    
-            """
-            Adding files to the assistant
-            """
-            file_streams = pdf_docs
-            
-            fc.load_file_to_assistant(client, assistant_identifier, file_streams)
-    
-            
-            # Retrieve prompts and formatting requirements
-            try:
-                prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
-                    'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
-            except Exception as e:
-                st.error(f"Error retrieving prompts: {e}")
-                return
-            
-            for prompt_name, prompt_message in prompt_list:
-                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
-                                                   prompt_message, additional_formatting_requirements,
-                                                   answers_dict)
-                
-                assistant_response = fc.separate_thread_answers(openai, prompt_message, 
-                                                                assistant_identifier)
-                
-                if assistant_response:
-                    temp_responses.append(assistant_response)
-                    assistant_response = fc.remove_source_patterns(assistant_response)
-                    answers_dict[prompt_name] = assistant_response
-                    fc.document_filler(doc_copy, prompt_name, assistant_response)
-                else:
-                    st.warning(f"No response for prompt '{prompt_name}'.")
-    
-    
-            assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-    
-    
-            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
-                                                                                            ['RM_Prompts', 'RM_Format_add'])
-            for prompt_name, prompt_message in prompt_list:
-    
-                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+        # Initialize variables
+        temp_responses = []
+        answers_dict = {}
+
+        configuration = fc.assistant_config(config, 'BO')
+
+        assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+        file_streams = pdf_docs
+
+        vector_store = client.beta.vector_stores.create(name="Business Overview")
+        vector_store_id = vector_store.id
+        
+        fc.load_file_to_assistant(client, vector_store_id,
+                                    assistant_identifier, file_streams)
+
+        
+        # Retrieve prompts and formatting requirements
+        try:
+            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
+                'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
+        except Exception as e:
+            st.error(f"Error retrieving prompts: {e}")
+            return
+        
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Preparing Business Overview...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        
+        #print(f'{prompt_list}')
+        for prompt_name, prompt_message in prompt_list:
+            prompt_message_f = fc.prompt_creator(prompt_df, prompt_name, 
                                                 prompt_message, additional_formatting_requirements,
                                                 answers_dict)
-    
-                assistant_response = fc.separate_thread_answers(client, prompt_message, 
-                                                                assistant_identifier)
-                
-    
-                if assistant_response:
-                    print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
-
+            
+            assistant_response, thread_id = fc.separate_thread_answers(openai, prompt_message_f, 
+                                                            assistant_identifier)
+            
+            assistant_response = fc.warning_check(assistant_response, client,
+                                                  thread_id, prompt_message, 
+                                                  assistant_identifier)
+            
+            if assistant_response:
                 temp_responses.append(assistant_response)
-
                 assistant_response = fc.remove_source_patterns(assistant_response)
-
                 answers_dict[prompt_name] = assistant_response
-
                 fc.document_filler(doc_copy, prompt_name, assistant_response)
+            else:
+                st.warning(f"No response for prompt '{prompt_name}'.")
+        
+        
+        #REFERENCE MARKET CREATION
+        
+        
+        #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+        configuration = fc.assistant_config(config, 'RM')
+        assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+        vector_store = client.beta.vector_stores.create(name="Reference Market")
+        vector_store_id = vector_store.id
+        
+        fc.load_file_to_assistant(client, vector_store_id,
+                                    assistant_identifier, file_streams)
+        
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Searching online...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        
+        retrieved_files = fc.html_retriever(file_streams)
+
+        if retrieved_files:
+
+            fc.load_file_to_assistant(client, vector_store_id,
+                                        assistant_identifier, retrieved_files,
+                                        uploaded = False)
+
+
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Preparing market analysis...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
+                                                                                        ['RM_Prompts', 'RM_Format_add'])
+        for prompt_name, prompt_message in prompt_list:
+
+            prompt_message_f = fc.prompt_creator(prompt_df, prompt_name, 
+                                            prompt_message, additional_formatting_requirements,
+                                            answers_dict)
+
+            assistant_response, thread_id = fc.separate_thread_answers(openai, prompt_message_f, 
+                                                            assistant_identifier)
+            
+            assistant_response = fc.warning_check(assistant_response, client,
+                                                  thread_id, prompt_message, 
+                                                  assistant_identifier)
+            
+
+            if assistant_response:
+                print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
+
+            temp_responses.append(assistant_response)
+
+            assistant_response = fc.remove_source_patterns(assistant_response)
+
+            answers_dict[prompt_name] = assistant_response
+
+            fc.document_filler(doc_copy, prompt_name, assistant_response)
+    
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Formatting the document...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+
+        fc.adding_headers(doc_copy, project_title)
 
         # Save the modified document
         output_path = 'generated_document.docx'
         doc_copy.save(output_path)
-        st.success(f'Document generated and saved as {output_path}')
+        message_placeholder.empty()
+        st.success(f'The 2Pager has been generated and is ready to be donwloaded')
         # Provide a download link
         with open(output_path, "rb") as doc_file:
             btn = st.download_button(
@@ -268,6 +394,11 @@ def document_generator():
                 file_name=output_path,
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
+        fact_check_button = st.button('Fact Check')
+
+        if fact_check_button:
+
+            chatbot_with_pdfs(default=False, pdf_docs=file_streams)
 
 # Main Function
 def main():
@@ -276,7 +407,7 @@ def main():
     elif option == 'Document Generator':
         document_generator()
     else:
-        st.error("Invalid selection. Please choose a valid functionality.")
+        pass
 
 if __name__ == '__main__':
     main()
