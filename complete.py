@@ -285,7 +285,8 @@ def document_generator():
                 answers_dict[prompt_name] = assistant_response
 
                 fc.document_filler(doc_copy, prompt_name, assistant_response)
-                fc.adding_headers(doc_copy, project_title)
+        
+        fc.adding_headers(doc_copy, project_title)
 
         # Save the modified document
         output_path = 'generated_document.docx'
