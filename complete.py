@@ -133,6 +133,9 @@ def chatbot_with_pdfs():
 
 # Document Generator Functionality
 def document_generator():
+    
+    milestone = 1
+    steps = 5
 
     # Preloaded Files
     xlsx_file = "prompt_db.xlsx"
@@ -191,107 +194,136 @@ def document_generator():
 
     # Start the generation process
     if gen_button:
-        with st.spinner('Generating document...'):
+    
+        
+        #if pdf_docs:
+            #st.write('Files correctly uploaded')
+            
+        #else:
+            #st.write("No files uploaded.")
 
-            if pdf_docs:
-                st.write('Files correctly uploaded')
+        
+
+        progress_bar = st.progress(0)  # Initialize progress bar
+        message_placeholder = st.empty()  # Placeholder for dynamic text
+
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Learning from the presentation...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
                 
-            else:
-                st.write("No files uploaded.")
-                    
-            # Initialize variables
-            temp_responses = []
-            answers_dict = {}
-    
-            configuration = fc.assistant_config(config, 'BO')
-    
-            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+        # Initialize variables
+        temp_responses = []
+        answers_dict = {}
 
-            file_streams = pdf_docs
+        configuration = fc.assistant_config(config, 'BO')
 
-            vector_store = client.beta.vector_stores.create(name="Business Overview")
-            vector_store_id = vector_store.id
-            
-            fc.load_file_to_assistant(client, vector_store_id,
-                                      assistant_identifier, file_streams)
-    
-            
-            # Retrieve prompts and formatting requirements
-            try:
-                prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
-                    'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
-            except Exception as e:
-                st.error(f"Error retrieving prompts: {e}")
-                return
-            
-            #print(f'{prompt_list}')
-            for prompt_name, prompt_message in prompt_list:
-                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
-                                                   prompt_message, additional_formatting_requirements,
-                                                   answers_dict)
-                
-                assistant_response = fc.separate_thread_answers(openai, prompt_message, 
-                                                                assistant_identifier)
-                
-                if assistant_response:
-                    temp_responses.append(assistant_response)
-                    assistant_response = fc.remove_source_patterns(assistant_response)
-                    answers_dict[prompt_name] = assistant_response
-                    fc.document_filler(doc_copy, prompt_name, assistant_response)
-                else:
-                    st.warning(f"No response for prompt '{prompt_name}'.")
-            
-            """
-            REFERENCE MARKET CREATION
-            """
-            
-            #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-            configuration = fc.assistant_config(config, 'RM')
-            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+        assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
 
-            vector_store = client.beta.vector_stores.create(name="Reference Market")
-            vector_store_id = vector_store.id
-            
-            fc.load_file_to_assistant(client, vector_store_id,
-                                      assistant_identifier, file_streams)
-            
-            retrieved_files = fc.html_retriever(file_streams)
+        file_streams = pdf_docs
 
-            fc.load_file_to_assistant(client, vector_store_id,
-                                      assistant_identifier, retrieved_files,
-                                      uploaded = False)
+        vector_store = client.beta.vector_stores.create(name="Business Overview")
+        vector_store_id = vector_store.id
+        
+        fc.load_file_to_assistant(client, vector_store_id,
+                                    assistant_identifier, file_streams)
 
-
-    
-            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
-                                                                                            ['RM_Prompts', 'RM_Format_add'])
-            for prompt_name, prompt_message in prompt_list:
-    
-                prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+        
+        # Retrieve prompts and formatting requirements
+        try:
+            prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever(
+                'prompt_db.xlsx', ['BO_Prompts', 'BO_Format_add'])
+        except Exception as e:
+            st.error(f"Error retrieving prompts: {e}")
+            return
+        
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Preparing Business Overview...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        
+        #print(f'{prompt_list}')
+        for prompt_name, prompt_message in prompt_list:
+            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
                                                 prompt_message, additional_formatting_requirements,
                                                 answers_dict)
-    
-                assistant_response = fc.separate_thread_answers(client, prompt_message, 
-                                                                assistant_identifier)
-                
-    
-                if assistant_response:
-                    print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
-
+            
+            assistant_response = fc.separate_thread_answers(openai, prompt_message, 
+                                                            assistant_identifier)
+            
+            if assistant_response:
                 temp_responses.append(assistant_response)
-
                 assistant_response = fc.remove_source_patterns(assistant_response)
-
                 answers_dict[prompt_name] = assistant_response
-
                 fc.document_filler(doc_copy, prompt_name, assistant_response)
+            else:
+                st.warning(f"No response for prompt '{prompt_name}'.")
         
+        
+        #REFERENCE MARKET CREATION
+        
+        
+        #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+        configuration = fc.assistant_config(config, 'RM')
+        assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+        vector_store = client.beta.vector_stores.create(name="Reference Market")
+        vector_store_id = vector_store.id
+        
+        fc.load_file_to_assistant(client, vector_store_id,
+                                    assistant_identifier, file_streams)
+        
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Searching online...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        
+        retrieved_files = fc.html_retriever(file_streams)
+
+        fc.load_file_to_assistant(client, vector_store_id,
+                                    assistant_identifier, retrieved_files,
+                                    uploaded = False)
+
+
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Preparing market analysis...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+        prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
+                                                                                        ['RM_Prompts', 'RM_Format_add'])
+        for prompt_name, prompt_message in prompt_list:
+
+            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+                                            prompt_message, additional_formatting_requirements,
+                                            answers_dict)
+
+            assistant_response = fc.separate_thread_answers(client, prompt_message, 
+                                                            assistant_identifier)
+            
+
+            if assistant_response:
+                print(f"Assistant response for prompt '{prompt_name}': {assistant_response}")
+
+            temp_responses.append(assistant_response)
+
+            assistant_response = fc.remove_source_patterns(assistant_response)
+
+            answers_dict[prompt_name] = assistant_response
+
+            fc.document_filler(doc_copy, prompt_name, assistant_response)
+    
+        progress_bar.progress(milestone / steps)
+        message_placeholder.markdown("Formatting the document...")
+        time.sleep(1)  # Simulate delay for demonstration
+        milestone += 1
+
         fc.adding_headers(doc_copy, project_title)
 
         # Save the modified document
         output_path = 'generated_document.docx'
         doc_copy.save(output_path)
-        st.success(f'Document generated and saved as {output_path}')
+        message_placeholder.empty()
+        st.success(f'The 2Pager has been generated and is ready to be donwloaded')
         # Provide a download link
         with open(output_path, "rb") as doc_file:
             btn = st.download_button(

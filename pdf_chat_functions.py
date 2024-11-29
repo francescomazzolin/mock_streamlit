@@ -7,6 +7,7 @@ from langchain.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
+import openai
 
 # Supporting Functions for Chatbot
 def get_pdf_text(pdf_docs):

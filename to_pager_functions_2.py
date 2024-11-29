@@ -409,7 +409,6 @@ def adding_headers(document, title):
 
     new_text = []
 
-    st.write(f'{title}')
     left_paragraph= f"Project {title.capitalize()}"
     
     new_text.append(left_paragraph)
