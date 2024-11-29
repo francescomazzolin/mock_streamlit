@@ -92,15 +92,16 @@ option = st.selectbox(
 )
 
 # Chatbot Functionality
-def chatbot_with_pdfs():
 
+# Chatbot Functionality
+def chatbot_with_pdfs():
     st.header('Chat with multiple PDFs :books:')
 
     # Initialize Session State
     if 'conversation' not in st.session_state:
         st.session_state.conversation = None
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None  
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []   
 
     # Sidebar for uploading PDFs
     with st.sidebar:
@@ -115,21 +116,60 @@ def chatbot_with_pdfs():
                     
                     # Get the text chunks
                     text_chunks = pc.get_text_chunks(raw_text)
-                    # st.write(text_chunks)  # Optionally display chunks
 
                     # Create our vector store with embeddings
                     vectorstore = pc.get_vectorstore(text_chunks)
 
                     # Create conversation chain
                     st.session_state.conversation = pc.get_conversation_chain(vectorstore)
+                    st.session_state.chat_history = []  # Reset chat history
                     st.success('Processing complete! You can now ask questions.')
             else:
                 st.warning('Please upload at least one PDF file before processing.')
 
     # Input for questions
-    user_question = st.text_input('Ask a question about your documents:')
-    if user_question:
-        st.handle_userinput(user_question)
+    user_question = st.chat_input('Ask a question about your documents:')
+
+    # Process the question
+    if user_question and st.session_state.conversation:
+        with st.spinner("Fetching response..."):
+            try:
+                # Get the response from the conversation chain
+                response = st.session_state.conversation({'question': user_question})
+                answer = response['answer']  # Assuming response contains an 'answer' key
+
+                # Update chat history in session state
+                st.session_state.chat_history.append({'question': user_question, 'answer': answer})
+              # Refresh UI to display the updated chat history
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    # Display chat history with images
+    if st.session_state.chat_history:
+        for idx, chat in enumerate(st.session_state.chat_history):
+            # User's question
+            st.markdown(
+                f"""
+                <div style="background-color: #010609; border: 1px solid #d6d6d6; border-radius: 25px; padding: 10px; margin-bottom: 10px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png" alt="user" width="30" style="vertical-align: middle; margin-right: 10px;">
+                    <b>You:</b> {chat['question']}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            # Chatbot's response
+            st.markdown(
+                f"""
+                    <b>AI Assistant:</b> {chat['answer']}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # Spacer to push the input box to the bottom
+    st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
+
 
 # Document Generator Functionality
 def document_generator():
