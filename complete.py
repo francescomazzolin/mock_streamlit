@@ -28,8 +28,13 @@ if openai.api_key is None:
     st.error("Error: OpenAI API key not found. Make sure it is set in environment variables or Streamlit secrets.")
     st.stop()
 
+#This makes sure that none of the warnings will be printed on screen
+st.set_option('deprecation.showwarning', False)
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
 # Set Page Configuration
 st.set_page_config(page_title='AI Gradiente', page_icon=':robot:')
+#st.subheader('SUCCESS COMES WHEN PREPARATION MEETS OPPORTUNITY')
 
 # Add custom font and styles
 st.markdown("""
@@ -43,18 +48,18 @@ st.markdown("""
     /* Optional: Customize specific elements */
     h1, h2, h3, h4, h5, h6 {
         font-weight: 500;
-        color: #333333;  /* Adjust header color if needed */
+        color: #003866;  /* Adjust header color if needed */
     }
     .stButton>button {
         font-family: Arial, sans-serif;
         font-weight: 700;
         color: white;
-        background-color: #D32F2F;  /* Button background color */
+        background-color: #E41A13;  /* Button background color */
         border-radius: 5px;
         border: none;
     }
     .stMarkdown {
-        color: #424242;  /* Paragraph text color */
+        color: #003866;  /* Paragraph text color */
     }
     </style>
 """, unsafe_allow_html=True)
