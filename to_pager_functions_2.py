@@ -339,10 +339,10 @@ def html_retriever(uploaded_files):
                     file.write(response.text)
 
                 html_file_paths.append(file_path)
-                st.write(f"HTML content retrieved and saved from {url}")
+                #st.write(f"HTML content retrieved and saved from {url}")
                 break  # Stop trying other columns once successful
             except Exception as e:
-                st.warning(f"Failed to fetch {url}: {e}")
+                #st.warning(f"Failed to fetch {url}: {e}")
                 continue
 
     return html_file_paths
