@@ -134,11 +134,11 @@ Assistant Question and Answering functions
 """
 
 
-def get_answer(client, run, thread):
+def get_answer(client, run, thread_identifier):
     while not run.status == "completed":
         #print("Waiting for answer...")
         run = client.beta.threads.runs.retrieve(
-            thread_id=thread.id,
+            thread_id=thread_identifier,
             run_id=run.id
         )
 
@@ -210,16 +210,23 @@ def prompt_creator(prompt_df, prompt_name,
 
 
 def separate_thread_answers(client, prompt_message_format,
-                            assistant_identifier):
+                            assistant_identifier, 
+                            same_chat = False, thread_id = ''):
+    if not same_chat: 
 
-    thread = client.beta.threads.create()
+        thread = client.beta.threads.create()
+        thread_identifier = thread.id
+
+    else:
+
+        thread_identifier = thread_id
 
     """
     We essentially append our message to the current thread, to query the assistant
     """
 
     user_message = client.beta.threads.messages.create(
-        thread_id=thread.id,
+        thread_id=thread_identifier,
         role="user",
         content=prompt_message_format
     )
@@ -229,7 +236,7 @@ def separate_thread_answers(client, prompt_message_format,
     """
 
     run = client.beta.threads.runs.create(
-        thread_id=thread.id,
+        thread_id=thread_identifier,
         assistant_id= assistant_identifier  
     )
 
@@ -240,7 +247,7 @@ def separate_thread_answers(client, prompt_message_format,
 
     """
     
-    run = get_answer(client, run, thread)
+    run = get_answer(client, run, thread_identifier)
   
     
     """
@@ -255,7 +262,7 @@ def separate_thread_answers(client, prompt_message_format,
 !!!!!!!!!!!!!!!!!!!
     """
 
-    messages = client.beta.threads.messages.list(thread_id=thread.id)
+    messages = client.beta.threads.messages.list(thread_id=thread_identifier)
     assistant_response = None
 
     for message in messages.data:  
@@ -267,7 +274,39 @@ def separate_thread_answers(client, prompt_message_format,
             if assistant_response:
                 break
 
-    return assistant_response
+    return assistant_response, thread_identifier
+
+
+def missing_warning(client, thread_id, prompt, assistant_identifier):
+
+    question = """Given that, with the information in the files uploaded to the assistant, the model was not able to answer the following question:\n"""
+    question = question + prompt
+
+    question = """
+    Please write what will be a warning to the user that the model was not able to find the answer.
+
+    It should follow: "The AI Assistant did not find/was not confident enough to write about: {the theme of the question}
+    """
+
+    warning, x = separate_thread_answers(client, prompt, assistant_identifier)
+
+    warning += " Highlight!$%"
+
+    return warning
+
+def warning_check(answer, client, thread_id, prompt, assistant_identifier):
+
+    if "not_found" not in answer.lower():
+
+        return answer
+    
+    else:
+
+        warning = missing_warning(client, thread_id, prompt, assistant_identifier)
+        st.write(f'To the prompt: {prompt}')
+        st.write(f'Gives waring: {warning}')
+
+        return warning
 
 
 """

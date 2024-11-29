@@ -284,12 +284,16 @@ def document_generator():
         
         #print(f'{prompt_list}')
         for prompt_name, prompt_message in prompt_list:
-            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+            prompt_message_f = fc.prompt_creator(prompt_df, prompt_name, 
                                                 prompt_message, additional_formatting_requirements,
                                                 answers_dict)
             
-            assistant_response = fc.separate_thread_answers(openai, prompt_message, 
+            assistant_response, thread_id = fc.separate_thread_answers(openai, prompt_message_f, 
                                                             assistant_identifier)
+            
+            assistant_response = fc.warning_check(assistant_response, client,
+                                                  thread_id, prompt_message, 
+                                                  assistant_identifier)
             
             if assistant_response:
                 temp_responses.append(assistant_response)
@@ -320,9 +324,11 @@ def document_generator():
         
         retrieved_files = fc.html_retriever(file_streams)
 
-        fc.load_file_to_assistant(client, vector_store_id,
-                                    assistant_identifier, retrieved_files,
-                                    uploaded = False)
+        if retrieved_files:
+
+            fc.load_file_to_assistant(client, vector_store_id,
+                                        assistant_identifier, retrieved_files,
+                                        uploaded = False)
 
 
         progress_bar.progress(milestone / steps)
@@ -333,12 +339,16 @@ def document_generator():
                                                                                         ['RM_Prompts', 'RM_Format_add'])
         for prompt_name, prompt_message in prompt_list:
 
-            prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
+            prompt_message_f = fc.prompt_creator(prompt_df, prompt_name, 
                                             prompt_message, additional_formatting_requirements,
                                             answers_dict)
 
-            assistant_response = fc.separate_thread_answers(client, prompt_message, 
+            assistant_response, thread_id = fc.separate_thread_answers(openai, prompt_message_f, 
                                                             assistant_identifier)
+            
+            assistant_response = fc.warning_check(assistant_response, client,
+                                                  thread_id, prompt_message, 
+                                                  assistant_identifier)
             
 
             if assistant_response:
