@@ -94,38 +94,50 @@ option = st.selectbox(
 # Chatbot Functionality
 
 # Chatbot Functionality
-def chatbot_with_pdfs():
-    st.header('Chat with multiple PDFs :books:')
+def chatbot_with_pdfs(default=True, pdf_docs=None):
+    if default:
+        st.header('Chat with multiple PDFs :books:')
 
     # Initialize Session State
     if 'conversation' not in st.session_state:
         st.session_state.conversation = None
     if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = []   
+        st.session_state.chat_history = []
 
-    # Sidebar for uploading PDFs
-    with st.sidebar:
-        st.subheader('Your documents')
-        pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
-                                    accept_multiple_files=True)
-        if st.button('Process'):
-            if pdf_docs:
-                with st.spinner('Processing'):
-                    # Get PDF text
-                    raw_text = pc.get_pdf_text(pdf_docs)
-                    
-                    # Get the text chunks
-                    text_chunks = pc.get_text_chunks(raw_text)
+    if default:
+        # Existing code for default behavior
+        with st.sidebar:
+            st.subheader('Your documents')
+            pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
+                                        accept_multiple_files=True)
+            if st.button('Process'):
+                if pdf_docs:
+                    with st.spinner('Processing'):
+                        # Process PDFs
+                        raw_text = pc.get_pdf_text(pdf_docs)
+                        text_chunks = pc.get_text_chunks(raw_text)
+                        vectorstore = pc.get_vectorstore(text_chunks)
+                        st.session_state.conversation = pc.get_conversation_chain(vectorstore)
+                        st.session_state.chat_history = []
+                        st.success('Processing complete! You can now ask questions.')
+                else:
+                    st.warning('Please upload at least one PDF file before processing.')
+    else:
+        # Process PDFs when default is False
+        if pdf_docs:
+            with st.spinner('Processing'):
+                raw_text = pc.get_pdf_text(pdf_docs)
+                text_chunks = pc.get_text_chunks(raw_text)
+                vectorstore = pc.get_vectorstore(text_chunks)
+                st.session_state.conversation = pc.get_conversation_chain(vectorstore)
+                st.session_state.chat_history = []
+                st.success('Processing complete! You can now ask questions.')
+        else:
+            st.error('No documents to process. Please provide PDFs.')
 
-                    # Create our vector store with embeddings
-                    vectorstore = pc.get_vectorstore(text_chunks)
+    # The rest of your chatbot code remains the same
+    # ...
 
-                    # Create conversation chain
-                    st.session_state.conversation = pc.get_conversation_chain(vectorstore)
-                    st.session_state.chat_history = []  # Reset chat history
-                    st.success('Processing complete! You can now ask questions.')
-            else:
-                st.warning('Please upload at least one PDF file before processing.')
 
     # Input for questions
     user_question = st.chat_input('Ask a question about your documents:')
@@ -382,6 +394,11 @@ def document_generator():
                 file_name=output_path,
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
+        fact_check_button = st.button('Fact Check')
+
+        if fact_check_button:
+
+            chatbot_with_pdfs(default=False, pdf_docs=file_streams)
 
 # Main Function
 def main():
