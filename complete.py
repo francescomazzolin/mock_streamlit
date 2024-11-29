@@ -147,11 +147,22 @@ def document_generator():
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
-    st.subheader('Configuration')
+    st.subheader('Upload your files here:')
+
+    st.markdown(
+    """
+    <style>
+    div[data-testid="stFileUploader"] {
+        margin-top: -50px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+
 
     # Template Path Input
-    pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
-                                    accept_multiple_files=True)
+    pdf_docs = st.file_uploader('',accept_multiple_files=True)
     #st.write(f'{type(pdf_docs)}')
     
 
