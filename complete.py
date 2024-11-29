@@ -29,8 +29,8 @@ if openai.api_key is None:
     st.stop()
 
 #This makes sure that none of the warnings will be printed on screen
-st.set_option('deprecation.showwarning', False)
-st.set_option('deprecation.showPyplotGlobalUse', False)
+#st.set_option('deprecation.showwarning', False)
+#st.set_option('global.showWarningOnDirectExecution', False)
 
 # Set Page Configuration
 st.set_page_config(page_title='AI Gradiente', page_icon=':robot:')
@@ -237,17 +237,8 @@ def document_generator():
             fc.load_file_to_assistant(client, vector_store_id,
                                       assistant_identifier, file_streams)
             
-            st.write("Original file streams")
-            st.write(f"{file_streams}")
-            st.write(f"{type(file_streams)}")
-    
             retrieved_files = fc.html_retriever(file_streams)
 
-            st.write("Retrieved files")
-            st.write(f"{retrieved_files}")
-            #st.write(f"{type(retrieved_files)}")
-
-            
             fc.load_file_to_assistant(client, vector_store_id,
                                       assistant_identifier, retrieved_files,
                                       uploaded = False)
