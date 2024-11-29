@@ -1,6 +1,3 @@
-#%%
-
-
 # Import Libraries
 import streamlit as st
 import os
@@ -14,8 +11,6 @@ import pickle
 import importlib
 import configparser
 import tiktoken
-
-
 
 # Custom Functions Module
 import to_pager_functions_2 as fc
@@ -66,7 +61,7 @@ st.markdown("""
 
 # Display Banner Image
 banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
-st.image(banner_path, use_column_width=True)
+st.image(banner_path, use_container_width=True)
 
 # Main Title
 #st.title("AI Assistant Application")
@@ -87,9 +82,8 @@ st.markdown(
 
 option = st.selectbox(
     '',  # Leave label empty because it's already displayed above
-    ('Chatbot with PDFs', 'Document Generator')
+    ('Select an application', 'Chatbot with PDFs', 'Document Generator')
 )
-
 
 # Chatbot Functionality
 def chatbot_with_pdfs():
@@ -196,7 +190,7 @@ def document_generator():
                 st.error(f"Error retrieving prompts: {e}")
                 return
             
-
+            #print(f'{prompt_list}')
             for prompt_name, prompt_message in prompt_list:
                 prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
                                                    prompt_message, additional_formatting_requirements,
@@ -287,8 +281,7 @@ def main():
     elif option == 'Document Generator':
         document_generator()
     else:
-        st.error("Invalid selection. Please choose a valid functionality.")
+        pass
 
 if __name__ == '__main__':
     main()
-
