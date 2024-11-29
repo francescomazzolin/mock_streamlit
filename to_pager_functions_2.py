@@ -12,6 +12,8 @@ Packages for document writing
 """
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Pt
+#from docx.shared import Inches
 
 import openai
 
@@ -22,6 +24,7 @@ import pickle
 import requests
 from PyPDF2 import PdfReader
 from io import BytesIO
+from datetime import datetime
 
 
 import streamlit as st
@@ -394,3 +397,39 @@ def document_filler(doc_copy, prompt_name, assistant_response):
             for run in paragraph.runs:
                 if prompt_name in run.text:
                     run.text = run.text.replace(prompt_name, assistant_response)
+
+def adding_headers(document, title):
+
+    section = document.sections[0]
+
+    # Access the header of the section
+    header = section.header
+
+    paragraph = header.paragraphs[0]
+
+    new_text = []
+
+    left_paragraph= f"Project {title.capitalize()}"
+    
+    new_text.append(left_paragraph)
+
+    current_date = datetime.now()
+
+    right_paragraph = current_date.strftime("%B %Y").capitalize()
+    #print(right_paragraph)
+
+    new_text.append(right_paragraph)
+
+    #paragraph.text = f"{left_paragraph}\t\t{right_paragraph}"
+    
+    l = ['Project', 'Date']
+
+    for sub, new in zip(l, new_text):
+
+        for run in paragraph.runs:
+                    print(run.text)
+                    if sub in run.text:
+                        run.text = run.text.replace(sub, new)
+
+
+

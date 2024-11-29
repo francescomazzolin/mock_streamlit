@@ -1,3 +1,4 @@
+#%%
 # Import Libraries
 import streamlit as st
 import os
@@ -152,7 +153,7 @@ def document_generator():
     st.header('Document Generator :page_facing_up:')
     
     # Inputs or configurations for the document generator
-    st.subheader('Upload your files here:')
+    st.markdown('Upload your files here:')
 
     st.markdown(
     """
@@ -170,9 +171,26 @@ def document_generator():
     pdf_docs = st.file_uploader('',accept_multiple_files=True)
     #st.write(f'{type(pdf_docs)}')
     
+    st.markdown('Project title:')
+
+    hide_enter_message = (
+    """
+    <style>
+    div[data-testid="stTextInput"] {
+        margin-top: -50px;
+    }
+    div[data-testid="InputInstructions"] > span:nth-child(1) {
+    visibility: hidden;
+    }
+    </style>
+    """   )
+    st.markdown(hide_enter_message, unsafe_allow_html=True)
+    project_title = st.text_input("")
+
+    gen_button = st.button('Generate Document')
 
     # Start the generation process
-    if st.button('Generate Document'):
+    if gen_button:
         with st.spinner('Generating document...'):
 
             if pdf_docs:
@@ -267,6 +285,7 @@ def document_generator():
                 answers_dict[prompt_name] = assistant_response
 
                 fc.document_filler(doc_copy, prompt_name, assistant_response)
+                fc.adding_headers(doc_copy, project_title)
 
         # Save the modified document
         output_path = 'generated_document.docx'
