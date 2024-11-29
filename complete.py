@@ -1,5 +1,6 @@
 #%%
 
+
 # Import Libraries
 import streamlit as st
 import os
@@ -14,18 +15,14 @@ import importlib
 import tiktoken 
 import configparser
 
-# PDF Chatbot Libraries
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
+
 
 # Custom Functions Module
 import to_pager_functions_2 as fc
 importlib.reload(fc)
+
+import pdf_chat_functions as pc
+importlib.reload(pc)
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +36,10 @@ if openai.api_key is None:
 # Set Page Configuration
 st.set_page_config(page_title='AI Assistant', page_icon=':robot:')
 
+# Display Banner Image
+banner_path = "AI GRADIENTE VETTORIALE_page-0001.jpg"  # Update with the correct path
+st.image(banner_path, use_column_width=True)
+
 # Main Title
 st.title("AI Assistant Application")
 
@@ -48,58 +49,6 @@ option = st.selectbox(
     ('Chatbot with PDFs', 'Document Generator')
 )
 
-# Supporting Functions for Chatbot
-def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        try:
-            pdf_reader = PdfReader(pdf)
-            for page in pdf_reader.pages:
-                text += page.extract_text() or ""
-        except Exception as e:
-            st.error(f"Error processing {pdf.name}: {e}")
-    return text
-
-def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    chunks = text_splitter.split_text(text)
-    return chunks
-
-def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
-
-def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI(
-        model_name="gpt-4", 
-        temperature=0.1,
-        openai_api_key=openai.api_key
-    )
-    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        memory=memory
-    )
-    return conversation_chain
-
-def handle_userinput(user_question):
-    if st.session_state.conversation is None:
-        st.warning("Please upload and process the documents first!")
-        return
-
-    # Get the response from the conversation chain
-    response = st.session_state.conversation({'question': user_question})
-    answer = response['answer']  # Assuming response contains an 'answer' key
-
-    # Display the response in Streamlit
-    st.write(answer)
 
 # Chatbot Functionality
 def chatbot_with_pdfs():
@@ -121,17 +70,17 @@ def chatbot_with_pdfs():
             if pdf_docs:
                 with st.spinner('Processing'):
                     # Get PDF text
-                    raw_text = get_pdf_text(pdf_docs)
+                    raw_text = pc.get_pdf_text(pdf_docs)
                     
                     # Get the text chunks
-                    text_chunks = get_text_chunks(raw_text)
+                    text_chunks = pc.get_text_chunks(raw_text)
                     # st.write(text_chunks)  # Optionally display chunks
 
                     # Create our vector store with embeddings
-                    vectorstore = get_vectorstore(text_chunks)
+                    vectorstore = pc.get_vectorstore(text_chunks)
 
                     # Create conversation chain
-                    st.session_state.conversation = get_conversation_chain(vectorstore)
+                    st.session_state.conversation = pc.get_conversation_chain(vectorstore)
                     st.success('Processing complete! You can now ask questions.')
             else:
                 st.warning('Please upload at least one PDF file before processing.')
@@ -139,7 +88,7 @@ def chatbot_with_pdfs():
     # Input for questions
     user_question = st.text_input('Ask a question about your documents:')
     if user_question:
-        handle_userinput(user_question)
+        st.handle_userinput(user_question)
 
 # Document Generator Functionality
 def document_generator():
@@ -171,6 +120,7 @@ def document_generator():
     pdf_docs = st.file_uploader('Upload your PDFs here and click on Process', 
                                     accept_multiple_files=True)
     st.write(f'{type(pdf_docs)}')
+    st.write(f'{pdf_docs}')
     
 
     # Start the generation process
@@ -178,13 +128,8 @@ def document_generator():
         with st.spinner('Generating document...'):
 
             if pdf_docs:
-                st.write(f'{type(pdf_docs)}')
-                st.write(f'the first entry is: {pdf_docs[0]}')
+                st.write('Files correctly uploaded')
                 
-                for uploaded_file in pdf_docs:
-                    st.write(f"File Name: {uploaded_file.name}")
-                    st.write("Attributes and methods of the UploadedFile object:")
-                    st.write(dir(uploaded_file))  # List all attributes and methods
             else:
                 st.write("No files uploaded.")
                     
@@ -195,14 +140,16 @@ def document_generator():
             configuration = fc.assistant_config(config, 'BO')
     
             assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
-    
-    
-            """
-            Adding files to the assistant
-            """
+
             file_streams = pdf_docs
+
+            st.write(f'{file_streams}')
+
+            vector_store = client.beta.vector_stores.create(name="Business Overview")
+            vector_store_id = vector_store.id
             
-            fc.load_file_to_assistant(client, assistant_identifier, file_streams)
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, file_streams)
     
             
             # Retrieve prompts and formatting requirements
@@ -213,6 +160,7 @@ def document_generator():
                 st.error(f"Error retrieving prompts: {e}")
                 return
             
+
             for prompt_name, prompt_message in prompt_list:
                 prompt_message = fc.prompt_creator(prompt_df, prompt_name, 
                                                    prompt_message, additional_formatting_requirements,
@@ -228,10 +176,37 @@ def document_generator():
                     fc.document_filler(doc_copy, prompt_name, assistant_response)
                 else:
                     st.warning(f"No response for prompt '{prompt_name}'.")
+            
+            """
+            REFERENCE MARKET CREATION
+            """
+            
+            #assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
+            configuration = fc.assistant_config(config, 'RM')
+            assistant_identifier = fc.create_assistant(client, 'final_test', configuration)
+
+            vector_store = client.beta.vector_stores.create(name="Reference Market")
+            vector_store_id = vector_store.id
+            
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, file_streams)
+            
+            st.write("Original file streams")
+            st.write(f"{file_streams}")
+            st.write(f"{type(file_streams)}")
     
-    
-            assistant_identifier = 'asst_vy2MqKVgrmjCecSTRgg0y6oO'
-    
+            retrieved_files = fc.html_retriever(file_streams)
+
+            st.write("Retrieved files")
+            st.write(f"{retrieved_files}")
+            #st.write(f"{type(retrieved_files)}")
+
+            
+            fc.load_file_to_assistant(client, vector_store_id,
+                                      assistant_identifier, retrieved_files,
+                                      uploaded = False)
+
+
     
             prompt_list, additional_formatting_requirements, prompt_df = fc.prompts_retriever('prompt_db.xlsx', 
                                                                                             ['RM_Prompts', 'RM_Format_add'])
@@ -280,3 +255,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

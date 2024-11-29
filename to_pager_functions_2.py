@@ -1,6 +1,5 @@
 #%%
 
-
 """
 Packages for environment selection 
 """
@@ -20,6 +19,12 @@ import pandas as pd
 import re
 import time
 import pickle
+import requests
+from PyPDF2 import PdfReader
+from io import BytesIO
+
+
+import streamlit as st
 
 
 def get_pdf_files_in_directory(directory):
@@ -66,7 +71,9 @@ def create_assistant(client, name, config):
     )
     return assistant.id  # Return the assistant ID
 
-def load_file_to_assistant(client, assistant_identifier, pdf_docs):
+def load_file_to_assistant(client, vector_storeid ,
+                           assistant_identifier, pdf_docs,
+                           uploaded = True):
 
     # Get the current directory
     #current_directory = os.getcwd()
@@ -74,25 +81,45 @@ def load_file_to_assistant(client, assistant_identifier, pdf_docs):
     # Get a list of PDF files in the current directory
     #pdf_files = get_pdf_files_in_directory(current_directory)
 
-    vector_store = client.beta.vector_stores.create(name="Business Overview")
+    #vector_store = client.beta.vector_stores.create(name="Business Overview")
 
     #pdf_dirs = [pdf._file_urls.upload_url for pdf in pdf_docs]
     
     #file_streams = [open(path, "rb") for path in pdf_files]
     #file_streams = [open(path, "rb") for path in pdf_dirs]
 
+    if uploaded: 
+        file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+        vector_store_id= vector_storeid, files=pdf_docs
+        )
 
-    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-    vector_store_id=vector_store.id, files=pdf_docs
-    )
+        print(file_batch.status)
+        print(file_batch.file_counts)
 
-    print(file_batch.status)
-    print(file_batch.file_counts)
+    else:
+
+        # Open each file in binary mode
+        file_streams = [open(file_path, "rb") for file_path in pdf_docs]
+
+        try:
+            # Upload the files to the vector store
+            file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+                vector_store_id= vector_storeid, files=file_streams
+            )
+
+            print(file_batch.status)
+            print(file_batch.file_counts)
+
+
+        finally:
+            # Ensure all file streams are closed
+            for stream in file_streams:
+                stream.close()
 
 
     assistant = client.beta.assistants.update(
     assistant_id= assistant_identifier,
-    tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
+    tool_resources={"file_search": {"vector_store_ids": [vector_storeid]}},
     )
 
 
@@ -238,6 +265,91 @@ def separate_thread_answers(client, prompt_message_format,
                 break
 
     return assistant_response
+
+
+"""
+==================================================================================================================
+REFERENCE MARKET PART
+==================================================================================================================
+"""
+
+def get_pdf_text(pdf_docs): 
+    """Extracts text from a list of PDF files."""
+    text = "" 
+    for pdf in pdf_docs: 
+        pdf_reader = PdfReader(pdf) 
+
+        for page in pdf_reader.pages: 
+            text += page.extract_text() or "" 
+                
+    return text
+
+def html_retriever(uploaded_files):
+    #st.write(f"{uploaded_files}")
+
+    html_dir = "retrieved_html_files"
+    os.makedirs(html_dir, exist_ok=True)
+
+    extracted_text = get_pdf_text(uploaded_files)
+    #st.write(f"{extracted_text}")
+
+    """
+    Finding the URLs inside the files
+    """
+        
+    url_df = pd.DataFrame(columns = ['single_line', 'double_line', 'triple_line'])
+    url_pattern = r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    lines = extracted_text.split("\n")
+
+    found = []
+
+    for idx, line in enumerate(lines):
+
+        if re.search(r"https?://", line):
+
+            l = []
+            s = re.findall(url_pattern, line)
+            l.append(s[0])
+
+            l.append(s[0] + lines[idx + 1])
+            l.append(s[0] + "".join(lines[idx+1:idx+3]))
+
+            url_df.loc[len(url_df)] = l
+
+    
+        
+    # Ensure the output directory exists
+    #os.makedirs('html_files', exist_ok=True)
+
+    # List to hold file paths
+    html_file_paths = []
+
+    # Download HTML content for each URL
+    for idx in url_df.index:
+        for column in url_df.columns:
+            url = url_df.loc[idx, column]
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # Check for HTTP errors
+
+                # Save HTML content to a file
+                file_name = f"page_{idx}.html"
+                file_path = os.path.join(html_dir, file_name)
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(response.text)
+
+                html_file_paths.append(file_path)
+                st.write(f"HTML content retrieved and saved from {url}")
+                break  # Stop trying other columns once successful
+            except Exception as e:
+                st.warning(f"Failed to fetch {url}: {e}")
+                continue
+
+    return html_file_paths
+
+    
+
+
 
 
 """
